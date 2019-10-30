@@ -59,7 +59,7 @@ def split_scale_df(df):
     y_train = train[['tax_value']]
     X_test = test.drop(columns='tax_value')
     y_test = test[['tax_value']]
-    ols_model = ols('y_train ~ X_train',data=train).fit()
+    #ols_model = ols('y_train ~ X_train',data=train).fit()
     train['yhat'] = ols_model.predict(y_train)
     return train,test,X_train,y_train,X_test,y_test,ols_model
 
