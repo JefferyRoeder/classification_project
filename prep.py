@@ -9,6 +9,7 @@ import wrangle
 import env
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
 
 
 from sklearn.model_selection import train_test_split
@@ -35,6 +36,7 @@ def clean_telco(df):
     df['tech_protection'] = (df.device_protection == 'Yes') | (df.tech_support == 'Yes')
     df['internet_security'] = (df.online_backup == 'Yes') | (df.online_security == 'Yes')
     df['services'] = np.where((df['phone'] == True) & (df['internet_service_type_id'] <3),'internet w phone',np.where((df['phone'] == False) & (df['internet_service_type_id'] <3),'internet only','phone only'))
+    df = df.set_index('customer_id')
     return df
     
 
@@ -173,3 +175,30 @@ def quantile_churn(df):
 def charges_distro(df):
     sns.scatterplot(x='tenure',y='monthly_charges',data=df,hue='internet_service_type_id',alpha=.6)
     plt.legend(bbox_to_anchor=(1.05,1),loc=2)
+
+
+def drop_columns(df):
+    df.drop(['device_protection','tech_support','online_backup','online_security','streaming_tv','streaming_movies','gender','partner','dependents','phone_service','multiple_lines','services'],axis=1,inplace=True)
+    return df
+
+import graphviz
+from graphviz import Graph
+
+
+def tree_graph(clf):
+    dot_data = export_graphviz(clf,out_file=None)
+    graph = graphviz.Source(dot_data)
+
+    return graph.render('telco_churn',view=True)
+
+def key_features(clf,X_train):
+    feature_importance = clf.feature_importances_.round(5)
+    list_X = list(X_train.columns)
+    tree_scores = dict(zip(list_X,clf.feature_importances_.round(4)))
+    return pd.DataFrame(sorted(tree_scores.items(),key=lambda kv: kv[1],reverse=True))
+
+
+def model_accuracy(X_train,y_train,X_test,y_test,clf):
+    print("The train data had an accuracy of: ",clf.score(X_train,y_train))
+    print("The test data had an accuracy of: ",clf.score(X_test,y_test))
+
